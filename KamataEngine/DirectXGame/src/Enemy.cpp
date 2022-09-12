@@ -12,7 +12,7 @@ public:
 
 //メンバ関数の定義
 //初期化
-void Enemy::Initialize(Model* model , uint32_t textureHandle) {
+void Enemy::Initialize(Model* model , uint32_t textureHandle , Vector3 position) {
 
 	//nullポインタチェック
 	assert(model);
@@ -24,8 +24,7 @@ void Enemy::Initialize(Model* model , uint32_t textureHandle) {
 	//ワールド変換の初期化
 	worldTransform_.Initialize();
 
-	worldTransform_.translation_.y = 2;
-	worldTransform_.translation_.z = 15;
+	worldTransform_.translation_ = position;
 
 }
 
@@ -86,7 +85,7 @@ void Enemy::Leave() {
 	//移動(ベクトルを加算)
 
 	if (worldTransform_.translation_.z < -10 || 10 < worldTransform_.translation_.z) {
-		kEnemySpeed *= -z;
+		kEnemySpeed *= -1;
 	}
 
 	move_.z += kEnemySpeed;

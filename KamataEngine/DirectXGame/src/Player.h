@@ -9,6 +9,8 @@
 
 #include "PlayerBullet.h"
 
+class Enemy;
+
 class Player {
 
 public:
@@ -41,6 +43,9 @@ public:
 	//衝突判定
 	void Oncollision();
 
+private:
+	void Targetting();
+
 	//アクセッサ
 public:
 	Vector3 GetWorldPosition();
@@ -50,7 +55,7 @@ public:
 		return bullets_;
 	}
 
-	void SetEnemy(Enemy* enemy);
+	void SetEnemy(Enemy* enemy[30]);
 
 	//メンバ変数
 private:
@@ -78,7 +83,13 @@ private:
 	//デスタイマー
 	int32_t bulletTimer_ = kBulletCT;
 
-	Enemy* enemy_ = nullptr;
+	const int enemyNum = 5;
+
+	Enemy* enemy_[30];
+
+	const int targetNum = 3;
+
+	Enemy* target_[3];
 
 	const int kShotCT = 60;
 
@@ -88,6 +99,8 @@ private:
 
 	bool isFire = false;
 
-	int shotType = 0;
+	const int kTargetCT = 10;
+
+	int targetTimer_ = 0;
 };
 

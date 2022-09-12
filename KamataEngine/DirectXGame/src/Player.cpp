@@ -4,10 +4,22 @@
 
 #include "Myfunc.h"
 
+class Enemy {
+public:
+	Vector3 GetWorldPosition();
+
+};
+
 //コンストラクタの定義
 Player::Player() {
 	input_ = nullptr;
 	debugText_ = nullptr;
+	for (int i = 0; i < enemyNum; i++) {
+		delete enemy_[i];
+	}
+	for (int i = 0; i < 3; i++) {
+		delete target_[i];
+	}
 }
 
 //デストラクタの定義
@@ -42,15 +54,6 @@ void Player::Update() {
 
 	//worldTransformの更新
 	Myfunc::UpdateWorldTransform(worldTransform_);
-
-	if (input_->TriggerKey(DIK_LSHIFT)) {
-		if (shotType == 0) {
-			shotType = 1;
-		}
-		else {
-			shotType = 0;
-		}
-	}
 
 	ShotBullet();
 
@@ -91,6 +94,13 @@ void Player::Draw(ViewProjection viewprojection) {
 		viewprojection.eye.y ,
 		viewprojection.eye.z
 	);
+
+	for (int i = 0; i < 3; i++) {
+		if (target_[i]) {
+			/*ここにターゲットの描画処理を入れる*/
+		}
+	}
+
 }
 
 //移動処理
@@ -206,40 +216,147 @@ void Player::Rotate() {
 //弾の発射
 void Player::ShotBullet() {
 
-		if (shotTimer_-- < 0) {
-			if (input_->PushKey(DIK_SPACE)) {
-
+	if (shotTimer_-- < 0) {
+		//スペースキーを押している時
+		if (input_->PushKey(DIK_SPACE)) {
+			Targetting();
+		}
+		else {
+			//ターゲット[0]に敵の情報が入っていたら弾の発射フラグをオンにする
+			if (target_[0]) {
 				isFire = true;
+				targetTimer_ = 0;
 			}
 		}
 
-		if (bulletTimer_-- <= 0) {
-			if (isFire == true) {
+	}
+
+	if (bulletTimer_-- <= 0) {
+		if (isFire == true) {
 				Vector3 position = worldTransform_.translation_;
 
 				//弾を生成し初期化
 				std::unique_ptr<PlayerBullet> newBullet = std::make_unique<PlayerBullet>();
 				newBullet->Initialize(model_ , position);
 
-				newBullet->SetEnemy(enemy_);
+				newBullet->SetEnemy(target_[fireCount / 2]);
 
 				//弾を登録する
 				bullets_.push_back(std::move(newBullet));
 
 				bulletTimer_ = kBulletCT;
 				fireCount++;
-				if (5 < fireCount) {
-					fireCount = 0;
-					shotTimer_ = kShotCT;
-					isFire = false;
-				}
-			}
-		}
 
-		debugText_->SetPos(100 , 100);
-		debugText_->Printf("%d" , bullets_.size());
+				//ターゲットした数に合わせて弾の数が変わるならこっちの処理を使う
+				//ターゲット[2]まで敵の情報が入っていたら
+				if (target_[2]) {
+					//6発目まで発射して弾の発射を終える
+					if (6 <= fireCount) {
+						fireCount = 0;
+						shotTimer_ = kShotCT;
+						isFire = false;
+
+						target_[2] = nullptr;
+						target_[1] = nullptr;
+						target_[0] = nullptr;
+					}
+				}
+				//ターゲット[1]まで敵の情報が入っていたら
+				else if (target_[1]) {
+					//4発目まで発射して弾の発射を終える
+					if (4 <= fireCount) {
+						fireCount = 0;
+						shotTimer_ = kShotCT;
+						isFire = false;
+
+						target_[1] = nullptr;
+						target_[0] = nullptr;
+					}
+				}
+				//ターゲット[0]まで敵の情報が入っていたら
+				else if (target_[0]) {
+					//4発目まで発射して弾の発射を終える
+					if (2 <= fireCount) {
+						fireCount = 0;
+						shotTimer_ = kShotCT;
+						isFire = false;
+
+						target_[0] = nullptr;
+					}
+				}
+
+				//ターゲットした数に関係なく6発撃つならこっちの処理を使う
+				//if (6 <= fireCount) {
+				//	fireCount = 0;
+				//	shotTimer_ = kShotCT;
+				//	isFire = false;
+				//	
+				//	target_[2] = nullptr;
+				//	target_[1] = nullptr;
+				//	target_[0] = nullptr;
+				//}
+		}
+	}
+
+	debugText_->SetPos(100 , 100);
+	debugText_->Printf("%d" , bullets_.size());
 
 }
+
+void Player::Targetting() {
+
+	//敵の配列を近い順にソート
+	for (int i = 0; i < enemyNum; i++) {
+		for (int j = 0; j < enemyNum - 1; j++) {
+
+			Enemy* tmp = nullptr;
+
+			if (enemy_[j + 1]->GetWorldPosition().z - worldTransform_.translation_.z <
+				enemy_[j]->GetWorldPosition().z - worldTransform_.translation_.z) {
+
+				tmp = enemy_[j];
+				enemy_[j] = enemy_[j + 1];
+				enemy_[j + 1] = tmp;
+
+
+			}
+		}
+	}
+
+	//ターゲットタイマーが0ならターゲットの配列に敵の配列を代入していく
+	/*
+	個人的なこだわりとして同フレームに3つの敵をターゲットするより、
+	数フレームごとにターゲットする方がそれっぽいなと思ったのでこういう処理にしている
+	またその影響で[1][2]はそれ以前とターゲット先が被らないように条件分岐を入れている
+	*/
+	if (targetTimer_-- < 0) {
+		if (target_[0] == nullptr) {
+			target_[0] = enemy_[0];
+		}
+		else if (target_[1] == nullptr) {
+			if (target_[0] != enemy_[0]) {
+				target_[1] = enemy_[0];
+			}
+			else {
+				target_[1] = enemy_[1];
+			}
+		}
+		else if (target_[2] == nullptr) {
+			if (target_[0] != enemy_[0] && target_[1] != enemy_[0]) {
+				target_[2] = enemy_[0];
+			}
+			else if (target_[0] != enemy_[1] && target_[1] != enemy_[1]) {
+				target_[2] = enemy_[1];
+			}
+			else {
+				target_[2] = enemy_[2];
+			}
+		}
+		targetTimer_ = kTargetCT;
+	}
+
+}
+
 //衝突判定
 void Player::Oncollision() {
 }
@@ -255,6 +372,9 @@ Vector3 Player::GetWorldPosition() {
 	return worldPos;
 }
 
-void Player::SetEnemy(Enemy* enemy) {
-	enemy_ = enemy;
+void Player::SetEnemy(Enemy* enemy[30]) {
+
+	for (int i = 0; i < enemyNum; i++) {
+		enemy_[i] = enemy[i];
+	}
 }

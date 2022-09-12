@@ -55,7 +55,7 @@ void PlayerBullet::Initialize(Model* model , const Vector3& position ) {
 
 	angle_ = {0 , 0 , 1};
 
-	worldTransform_.scale_ = {0.5 , 0.5 , 0.5};
+	worldTransform_.scale_ = {0.5 , 0.5 , 2.0};
 
 	//âÒì]çsóÒÇópà”
 	Matrix4 matRot = MathUtility::Matrix4Identity();
@@ -87,7 +87,9 @@ void PlayerBullet::Update() {
 	break;
 
 	case PlayerBullet::Phase::Homing:
-	Homing();
+	if (enemy_) {
+		Homing();
+	}
 	break;
 	}
 
@@ -97,7 +99,10 @@ void PlayerBullet::Update() {
 		angle_.z / sqrt(angle_.x * angle_.x + angle_.y * angle_.y + angle_.z * angle_.z) ,
 	};
 
-	worldTransform_.rotation_ = direction;
+	//direction = Myfunc::MyMathUtility::MulVector3AndMatrix4(direction,worldTransform_.matWorld_);
+
+	worldTransform_.rotation_.x = direction.x;
+	worldTransform_.rotation_.y = direction.y;
 
 	//ç¿ïWÇà⁄ìÆÇ≥ÇπÇÈ
 	worldTransform_.translation_ += velocity_;

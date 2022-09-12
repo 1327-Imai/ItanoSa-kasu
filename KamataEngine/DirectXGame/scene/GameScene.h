@@ -91,7 +91,7 @@ private: // メンバ変数
 	Player* player_ = nullptr;
 
 	//敵
-	Enemy* enemy_ = nullptr;
+	Enemy* enemy_[5];
 
 	//ビュープロジェクション
 	ViewProjection viewProjection_;

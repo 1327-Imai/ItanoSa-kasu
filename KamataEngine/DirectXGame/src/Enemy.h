@@ -16,7 +16,7 @@ public:
 
 	//メンバ関数の宣言
 	//初期化
-	void Initialize(Model* model , uint32_t textureHandle);
+	void Initialize(Model* model , uint32_t textureHandle , Vector3 position);
 
 	//更新処理
 	void Update();
@@ -42,7 +42,7 @@ public:
 	void Oncollision();
 
 	void SetPlayer(Player* player);
-	
+
 	//弾リストを取得
 	const std::list<std::unique_ptr<EnemyBullet>>& GetBullets() {
 		return bullets_;
@@ -65,7 +65,7 @@ private:
 	uint32_t textureHandle_ = 0u;
 
 	//移動ベクトル
-	Vector3 move_ = {0.0f,0.0f,0.0f};
+	Vector3 move_ = {0.0f , 0.0f , 0.0f};
 
 	float kEnemySpeed = 0.5f;
 
