@@ -8,6 +8,12 @@ class Enemy {
 public:
 	Vector3 GetWorldPosition();
 
+	//ここから
+
+	bool GetIsDead();
+
+	//ここまで
+
 };
 
 //コンストラクタの定義
@@ -303,20 +309,22 @@ void Player::ShotBullet() {
 
 }
 
+//ここから
+
 void Player::Targetting() {
 
 	//敵の配列を近い順にソート
-	for (int i = 0; i < enemyNum; i++) {
-		for (int j = 0; j < enemyNum - 1; j++) {
+	for (int i = 0; i < _countof(livingEnemy_); i++) {
+		for (int j = 0; j < _countof(livingEnemy_) - 1; j++) {
 
 			Enemy* tmp = nullptr;
 
-			if (enemy_[j + 1]->GetWorldPosition().z - worldTransform_.translation_.z <
-				enemy_[j]->GetWorldPosition().z - worldTransform_.translation_.z) {
+			if (livingEnemy_[j + 1]->GetWorldPosition().z - worldTransform_.translation_.z <
+				livingEnemy_[j]->GetWorldPosition().z - worldTransform_.translation_.z) {
 
-				tmp = enemy_[j];
-				enemy_[j] = enemy_[j + 1];
-				enemy_[j + 1] = tmp;
+				tmp = livingEnemy_[j];
+				livingEnemy_[j] = livingEnemy_[j + 1];
+				livingEnemy_[j + 1] = tmp;
 
 
 			}
@@ -331,31 +339,50 @@ void Player::Targetting() {
 	*/
 	if (targetTimer_-- < 0) {
 		if (target_[0] == nullptr) {
-			target_[0] = enemy_[0];
+			target_[0] = livingEnemy_[0];
 		}
 		else if (target_[1] == nullptr) {
-			if (target_[0] != enemy_[0]) {
-				target_[1] = enemy_[0];
+			if (target_[0] != livingEnemy_[0]) {
+				target_[1] = livingEnemy_[0];
 			}
 			else {
-				target_[1] = enemy_[1];
+				target_[1] = livingEnemy_[1];
 			}
 		}
 		else if (target_[2] == nullptr) {
-			if (target_[0] != enemy_[0] && target_[1] != enemy_[0]) {
-				target_[2] = enemy_[0];
+			if (target_[0] != livingEnemy_[0] && target_[1] != livingEnemy_[0]) {
+				target_[2] = livingEnemy_[0];
 			}
-			else if (target_[0] != enemy_[1] && target_[1] != enemy_[1]) {
-				target_[2] = enemy_[1];
+			else if (target_[0] != livingEnemy_[1] && target_[1] != livingEnemy_[1]) {
+				target_[2] = livingEnemy_[1];
 			}
 			else {
-				target_[2] = enemy_[2];
+				target_[2] = livingEnemy_[2];
 			}
 		}
 		targetTimer_ = kTargetCT;
 	}
 
 }
+
+void Player::IsLivingEnemy(){
+
+	int count = 0;
+
+	for (int i = 0; i < _countof(enemy_); i++) {
+		if (enemy_[i]->GetIsDead() == false) {
+			if (worldTransform_.translation_.z < enemy_[i]->GetWorldPosition().z) {
+
+				livingEnemy_[count] = enemy_[i];
+
+				count++;
+			}
+		}
+	}
+
+}
+
+//ここまで
 
 //衝突判定
 void Player::Oncollision() {

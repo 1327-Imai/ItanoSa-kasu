@@ -46,6 +46,12 @@ public:
 private:
 	void Targetting();
 
+	//ここから
+
+	void IsLivingEnemy();
+
+	//ここまで
+
 	//アクセッサ
 public:
 	Vector3 GetWorldPosition();
@@ -86,6 +92,12 @@ private:
 	const int enemyNum = 5;
 
 	Enemy* enemy_[30];
+
+	//ここから
+
+	Enemy* livingEnemy_[30];
+
+	//ここまで
 
 	const int targetNum = 3;
 
