@@ -38,6 +38,8 @@ private:
 public:
 	Vector3 GetWorldPosition();
 
+	bool GetIsDead();
+
 	//è’ìÀîªíË
 	void Oncollision();
 
@@ -70,6 +72,8 @@ private:
 	float kEnemySpeed = 0.5f;
 
 	Phase phase_ = Phase::Approach;
+
+	bool isDead_ = false;
 
 	//íe
 	std::list<std::unique_ptr<EnemyBullet>> bullets_;

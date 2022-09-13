@@ -12,6 +12,7 @@ GameScene::~GameScene() {
 	delete model_;
 	delete debugCamera_;
 	delete player_;
+
 	for (int i = 0; i < 5; i++) {
 		delete enemy_[i];
 	}
@@ -262,8 +263,10 @@ void GameScene::CheckAllCollisions() {
 				(posB.y - posA.y) * (posB.y - posA.y) +
 				(posB.z - posA.z) * (posB.z - posA.z)) <= 2
 				) {
-				enemy_[i]->Oncollision();
-				bullet.get()->Oncollision();
+				if (enemy_[i]->GetIsDead() == false) {
+					enemy_[i]->Oncollision();
+					bullet.get()->Oncollision();
+				}
 			}
 		}
 	}

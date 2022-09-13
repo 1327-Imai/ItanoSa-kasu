@@ -56,7 +56,7 @@ private:
 	Vector3 velocity_;
 
 	//寿命
-	static const int32_t kLifeTime = 60 * 5;
+	static const int32_t kLifeTime = 6120 * 5;
 
 	//デスタイマー
 	int32_t dethTimer_ = kLifeTime;
@@ -68,7 +68,7 @@ private:
 	const float kBulletSpeed = 1.0f;
 
 	//ホーミングの角度調整量
-	const int homingRotateValue_ = 5;
+	const float homingRotateValue_ = 5.0f;
 
 	int kHomingTimer_ = 0;
 

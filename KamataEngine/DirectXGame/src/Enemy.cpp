@@ -31,16 +31,20 @@ void Enemy::Initialize(Model* model , uint32_t textureHandle , Vector3 position)
 //更新処理
 void Enemy::Update() {
 	move_ = {0.0f , 0.0f , 0.0f};
+	if (isDead_ == false) {
+		switch (phase_) {
+		case Enemy::Phase::Approach:
+		default:
+		Approach();
+		break;
 
-	switch (phase_) {
-	case Enemy::Phase::Approach:
-	default:
-	Approach();
-	break;
+		case Enemy::Phase::Leave:
+		Leave();
+		break;
+		}
 
-	case Enemy::Phase::Leave:
-	Leave();
-	break;
+		//worldTransformの更新
+		Myfunc::UpdateWorldTransform(worldTransform_);
 	}
 
 	ShotBullet();
@@ -54,18 +58,19 @@ void Enemy::Update() {
 		return bullet->IsDead();
 
 					   });
-
-	//worldTransformの更新
-	Myfunc::UpdateWorldTransform(worldTransform_);
 }
 
 //描画処理
 void Enemy::Draw(ViewProjection viewprojection) {
 
-	model_->Draw(worldTransform_ , viewprojection , textureHandle_);
-	for (std::unique_ptr<EnemyBullet>& bullet : bullets_) {
-		bullet->Draw(viewprojection);
+	if (isDead_ == false) {
+
+		model_->Draw(worldTransform_ , viewprojection , textureHandle_);
+		for (std::unique_ptr<EnemyBullet>& bullet : bullets_) {
+			bullet->Draw(viewprojection);
+		}
 	}
+
 }
 
 //接近フェーズの関数
@@ -130,6 +135,9 @@ void Enemy::ShotBullet() {
 
 //衝突判定
 void Enemy::Oncollision() {
+
+	isDead_ = true;
+
 }
 
 void Enemy::SetPlayer(Player* player) {
@@ -145,4 +153,8 @@ Vector3 Enemy::GetWorldPosition() {
 	worldPos.z = worldTransform_.translation_.z;
 
 	return worldPos;
+}
+
+bool Enemy::GetIsDead() {
+	return isDead_;
 }

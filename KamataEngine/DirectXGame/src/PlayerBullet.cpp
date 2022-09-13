@@ -7,7 +7,7 @@
 class Enemy {
 public:
 	Vector3 GetWorldPosition();
-
+	bool GetIsDead();
 };
 
 //コンストラクタ
@@ -22,7 +22,7 @@ PlayerBullet::~PlayerBullet() {
 
 //メンバ関数
 //初期化
-void PlayerBullet::Initialize(Model* model , const Vector3& position ) {
+void PlayerBullet::Initialize(Model* model , const Vector3& position) {
 
 #pragma region//乱数生成の下準備
 	//乱数シード生成器
@@ -30,9 +30,9 @@ void PlayerBullet::Initialize(Model* model , const Vector3& position ) {
 	//メルセンヌ・ツイスターの乱数エンジン
 	std::mt19937_64 engine(seed_gen());
 	//乱数範囲の設定
-	std::uniform_real_distribution<float> accuaryDist(0.0 , 2.0);
-	std::uniform_real_distribution<float> wayDist(0 , 4.0);
-	std::uniform_real_distribution<float> timeDist(0 , 30.0);
+	std::uniform_real_distribution<float> accuaryDist(0 , 2);
+	std::uniform_real_distribution<float> wayDist(-2 , 2);
+	std::uniform_real_distribution<float> timeDist(0 , 30);
 
 #pragma endregion
 
@@ -62,8 +62,8 @@ void PlayerBullet::Initialize(Model* model , const Vector3& position ) {
 
 	//回転ベクトルを用意
 	Vector3 rotation = {
-		Myfunc::MyMathUtility::Deg2Rad((wayDist(engine) - 2) * 20) ,
-		Myfunc::MyMathUtility::Deg2Rad((wayDist(engine) - 2) * 20) ,
+		Myfunc::MyMathUtility::Deg2Rad((float)((int)wayDist(engine)) * 20) ,
+		Myfunc::MyMathUtility::Deg2Rad((float)((int)wayDist(engine)) * 20) ,
 		0};
 
 	//回転行列に回転ベクトルを反映
@@ -74,7 +74,11 @@ void PlayerBullet::Initialize(Model* model , const Vector3& position ) {
 
 	kFireTimer = 0; kStartHomingTime = timeDist(engine);
 
+	float test = (float)((int)wayDist(engine));
 
+	worldTransform_.rotation_.x = rotation.x;
+	worldTransform_.rotation_.y = rotation.y;
+	worldTransform_.rotation_.z = rotation.z;
 }
 
 //更新処理
@@ -88,23 +92,20 @@ void PlayerBullet::Update() {
 
 	case PlayerBullet::Phase::Homing:
 	if (enemy_) {
-		Homing();
+		if (enemy_->GetIsDead() == false) {
+			Homing();
+		}
 	}
 	break;
 	}
 
-	Vector3 direction = {
-		angle_.x / sqrt(angle_.x * angle_.x + angle_.y * angle_.y + angle_.z * angle_.z) ,
-		angle_.y / sqrt(angle_.x * angle_.x + angle_.y * angle_.y + angle_.z * angle_.z) ,
-		angle_.z / sqrt(angle_.x * angle_.x + angle_.y * angle_.y + angle_.z * angle_.z) ,
-	};
+	worldTransform_.rotation_.y = atan2(velocity_.x, velocity_.z);
 
-	//direction = Myfunc::MyMathUtility::MulVector3AndMatrix4(direction,worldTransform_.matWorld_);
+	float length = sqrt(velocity_.x * velocity_.x + velocity_.z * velocity_.z);
 
-	worldTransform_.rotation_.x = direction.x;
-	worldTransform_.rotation_.y = direction.y;
+	worldTransform_.rotation_.x = atan2(-velocity_.y ,length);
 
-	//座標を移動させる
+	   //座標を移動させる
 	worldTransform_.translation_ += velocity_;
 
 	Myfunc::UpdateWorldTransform(worldTransform_);
@@ -148,7 +149,7 @@ void PlayerBullet::Homing() {
 		targetPos_ = enemy_->GetWorldPosition();
 
 		//ホーミング精度に合わせてタイマーをリセット
-		kHomingTimer_ = homingAccuary_ * 5;
+		kHomingTimer_ = homingAccuary_ * 0;
 	}
 
 	//弾のアングルと弾から敵までのベクトルの外積を出す

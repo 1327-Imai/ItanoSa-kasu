@@ -20,17 +20,13 @@ public:
 Player::Player() {
 	input_ = nullptr;
 	debugText_ = nullptr;
-	for (int i = 0; i < enemyNum; i++) {
-		delete enemy_[i];
-	}
-	for (int i = 0; i < 3; i++) {
-		delete target_[i];
-	}
 }
 
 //デストラクタの定義
 Player::~Player() {
-
+	for (int i = 0; i < 3; i++) {
+		delete target_[i];
+	}
 }
 
 //メンバ関数の定義
@@ -78,6 +74,8 @@ void Player::Update() {
 
 //描画処理
 void Player::Draw(ViewProjection viewprojection) {
+
+	IsLivingEnemy();
 
 	model_->Draw(worldTransform_ , viewprojection , textureHandle_);
 
@@ -239,68 +237,68 @@ void Player::ShotBullet() {
 
 	if (bulletTimer_-- <= 0) {
 		if (isFire == true) {
-				Vector3 position = worldTransform_.translation_;
+			Vector3 position = worldTransform_.translation_;
 
-				//弾を生成し初期化
-				std::unique_ptr<PlayerBullet> newBullet = std::make_unique<PlayerBullet>();
-				newBullet->Initialize(model_ , position);
+			//弾を生成し初期化
+			std::unique_ptr<PlayerBullet> newBullet = std::make_unique<PlayerBullet>();
+			newBullet->Initialize(model_ , position);
 
-				newBullet->SetEnemy(target_[fireCount / 2]);
+			newBullet->SetEnemy(target_[fireCount / 2]);
 
-				//弾を登録する
-				bullets_.push_back(std::move(newBullet));
+			//弾を登録する
+			bullets_.push_back(std::move(newBullet));
 
-				bulletTimer_ = kBulletCT;
-				fireCount++;
+			bulletTimer_ = kBulletCT;
+			fireCount++;
 
-				//ターゲットした数に合わせて弾の数が変わるならこっちの処理を使う
-				//ターゲット[2]まで敵の情報が入っていたら
-				if (target_[2]) {
-					//6発目まで発射して弾の発射を終える
-					if (6 <= fireCount) {
-						fireCount = 0;
-						shotTimer_ = kShotCT;
-						isFire = false;
+			//ターゲットした数に合わせて弾の数が変わるならこっちの処理を使う
+			//ターゲット[2]まで敵の情報が入っていたら
+			if (target_[2]) {
+				//6発目まで発射して弾の発射を終える
+				if (6 <= fireCount) {
+					fireCount = 0;
+					shotTimer_ = kShotCT;
+					isFire = false;
 
-						target_[2] = nullptr;
-						target_[1] = nullptr;
-						target_[0] = nullptr;
-					}
+					target_[2] = nullptr;
+					target_[1] = nullptr;
+					target_[0] = nullptr;
 				}
-				//ターゲット[1]まで敵の情報が入っていたら
-				else if (target_[1]) {
-					//4発目まで発射して弾の発射を終える
-					if (4 <= fireCount) {
-						fireCount = 0;
-						shotTimer_ = kShotCT;
-						isFire = false;
+			}
+			//ターゲット[1]まで敵の情報が入っていたら
+			else if (target_[1]) {
+				//4発目まで発射して弾の発射を終える
+				if (4 <= fireCount) {
+					fireCount = 0;
+					shotTimer_ = kShotCT;
+					isFire = false;
 
-						target_[1] = nullptr;
-						target_[0] = nullptr;
-					}
+					target_[1] = nullptr;
+					target_[0] = nullptr;
 				}
-				//ターゲット[0]まで敵の情報が入っていたら
-				else if (target_[0]) {
-					//4発目まで発射して弾の発射を終える
-					if (2 <= fireCount) {
-						fireCount = 0;
-						shotTimer_ = kShotCT;
-						isFire = false;
+			}
+			//ターゲット[0]まで敵の情報が入っていたら
+			else if (target_[0]) {
+				//4発目まで発射して弾の発射を終える
+				if (2 <= fireCount) {
+					fireCount = 0;
+					shotTimer_ = kShotCT;
+					isFire = false;
 
-						target_[0] = nullptr;
-					}
+					target_[0] = nullptr;
 				}
+			}
 
-				//ターゲットした数に関係なく6発撃つならこっちの処理を使う
-				//if (6 <= fireCount) {
-				//	fireCount = 0;
-				//	shotTimer_ = kShotCT;
-				//	isFire = false;
-				//	
-				//	target_[2] = nullptr;
-				//	target_[1] = nullptr;
-				//	target_[0] = nullptr;
-				//}
+			//ターゲットした数に関係なく6発撃つならこっちの処理を使う
+			//if (6 <= fireCount) {
+			//	fireCount = 0;
+			//	shotTimer_ = kShotCT;
+			//	isFire = false;
+			//	
+			//	target_[2] = nullptr;
+			//	target_[1] = nullptr;
+			//	target_[0] = nullptr;
+			//}
 		}
 	}
 
@@ -313,9 +311,17 @@ void Player::ShotBullet() {
 
 void Player::Targetting() {
 
-	//敵の配列を近い順にソート
+	int count = 0;
+
 	for (int i = 0; i < _countof(livingEnemy_); i++) {
-		for (int j = 0; j < _countof(livingEnemy_) - 1; j++) {
+		if (livingEnemy_[i] != nullptr) {
+			count++;
+		}
+	}
+
+	//敵の配列を近い順にソート
+	for (int i = 0; i < count; i++) {
+		for (int j = 0; j < count - 1; j++) {
 
 			Enemy* tmp = nullptr;
 
@@ -365,17 +371,23 @@ void Player::Targetting() {
 
 }
 
-void Player::IsLivingEnemy(){
+void Player::IsLivingEnemy() {
+
+	for (int i = 0; i < _countof(livingEnemy_); i++) {
+		livingEnemy_[i] = nullptr;
+	}
 
 	int count = 0;
 
-	for (int i = 0; i < _countof(enemy_); i++) {
-		if (enemy_[i]->GetIsDead() == false) {
-			if (worldTransform_.translation_.z < enemy_[i]->GetWorldPosition().z) {
+	for (int i = 0; i < 5; i++) {
+		if (enemy_[i] != nullptr) {
+			if (enemy_[i]->GetIsDead() == false) {
+				if (worldTransform_.translation_.z < enemy_[i]->GetWorldPosition().z) {
 
-				livingEnemy_[count] = enemy_[i];
+					livingEnemy_[count] = enemy_[i];
 
-				count++;
+					count++;
+				}
 			}
 		}
 	}
